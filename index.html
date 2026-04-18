@@ -57,7 +57,6 @@
         .task-title { font-weight: bold; font-size: 16px; }
         .task-points { font-size: 12px; color: var(--accent); margin-top: 3px; display: block; }
 
-        /* Reset Button Styling */
         .reset-btn { background-color: transparent; color: #555; border: 1px solid #333; padding: 8px 15px; border-radius: 5px; cursor: pointer; margin-top: 20px; transition: 0.3s; }
         .reset-btn:hover { border-color: #ff4444; color: #ff4444; }
     </style>
@@ -115,6 +114,14 @@
             </div>
 
             <div class="task-section">
+                <h2>Discipline & Sleep (+10 EXP)</h2>
+                <label class="task-item"><input type="checkbox" id="cb_sleep" class="task-checkbox" value="5" onchange="updatePoints(this)">
+                    <div><span class="task-title">Sleep before 11 PM</span><span class="task-points">+5 EXP</span></div></label>
+                <label class="task-item"><input type="checkbox" id="cb_wake" class="task-checkbox" value="5" onchange="updatePoints(this)">
+                    <div><span class="task-title">Wake up before 7 AM</span><span class="task-points">+5 EXP</span></div></label>
+            </div>
+
+            <div class="task-section">
                 <h2>Calisthenics (+20 EXP) <span id="weekIndicator" style="color: var(--accent); font-size: 14px;">Week 1</span></h2>
                 
                 <label class="task-item">
@@ -149,9 +156,6 @@
     <button class="reset-btn" onclick="hardReset()">Hard Reset (Wipe Cloud Data)</button>
 
     <script>
-        // ==========================================
-        // FIREBASE CONFIGURATION
-        // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyAQqPjM9TlwRFXnSFs1rkXFApXSOrI3hOw",
             authDomain: "glow-up-protocol.firebaseapp.com",
@@ -170,7 +174,6 @@
         const TOTAL_DAYS = 90;
         let currentUser = null;
 
-        // Core App State
         let totalCumulativePoints = 0;
         let startDate = new Date().getTime();
         let completedWorkoutsArray = Array(TOTAL_DAYS).fill(false);
@@ -318,7 +321,6 @@
         }
 
         function refreshUI() {
-            // Level Logic
             const currentLevel = Math.floor(totalCumulativePoints / MAX_POINTS_PER_LEVEL) + 1;
             const pointsInCurrentLevel = totalCumulativePoints % MAX_POINTS_PER_LEVEL;
             
