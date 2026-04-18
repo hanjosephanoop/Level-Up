@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Glow-Up Protocol: 90-Day Recomp</title>
+    <title>Level-Up: 90-Day Glow Up</title>
     
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
@@ -119,20 +119,44 @@
 
             <div class="task-section">
                 <h2>Calisthenics (+20 EXP) <span id="weekIndicator" style="color: var(--accent); font-size: 14px;">Week 1</span></h2>
-                <label class="task-item"><input type="checkbox" id="cb_workout_upper" class="task-checkbox" value="5" onchange="updatePoints(this)">
-                    <div><span class="task-title" id="text_upper">Upper Body</span><span class="task-points">+5 EXP</span></div></label>
-                <label class="task-item"><input type="checkbox" id="cb_workout_lower" class="task-checkbox" value="5" onchange="updatePoints(this)">
-                    <div><span class="task-title" id="text_lower">Lower Body</span><span class="task-points">+5 EXP</span></div></label>
-                <label class="task-item"><input type="checkbox" id="cb_workout_back" class="task-checkbox" value="5" onchange="updatePoints(this)">
-                    <div><span class="task-title" id="text_back">Back / Pulls</span><span class="task-points">+5 EXP</span></div></label>
-                <label class="task-item"><input type="checkbox" id="cb_workout_core" class="task-checkbox" value="5" onchange="updatePoints(this)">
-                    <div><span class="task-title" id="text_core">Core Strength</span><span class="task-points">+5 EXP</span></div></label>
+                
+                <label class="task-item">
+                    <input type="checkbox" id="cb_workout_upper" class="task-checkbox" value="5" onchange="updatePoints(this)">
+                    <div>
+                        <span class="task-title" id="text_upper">Upper Body</span>
+                        <span class="task-points" id="desc_upper">+5 EXP</span>
+                    </div>
+                </label>
+
+                <label class="task-item">
+                    <input type="checkbox" id="cb_workout_lower" class="task-checkbox" value="5" onchange="updatePoints(this)">
+                    <div>
+                        <span class="task-title" id="text_lower">Lower Body</span>
+                        <span class="task-points" id="desc_lower">+5 EXP</span>
+                    </div>
+                </label>
+
+                <label class="task-item">
+                    <input type="checkbox" id="cb_workout_back" class="task-checkbox" value="5" onchange="updatePoints(this)">
+                    <div>
+                        <span class="task-title" id="text_back">Back / Pulls</span>
+                        <span class="task-points" id="desc_back">+5 EXP</span>
+                    </div>
+                </label>
+
+                <label class="task-item">
+                    <input type="checkbox" id="cb_workout_core" class="task-checkbox" value="5" onchange="updatePoints(this)">
+                    <div>
+                        <span class="task-title" id="text_core">Core Strength</span>
+                        <span class="task-points" id="desc_core">+5 EXP</span>
+                    </div>
+                </label>
             </div>
             
             <div class="task-section" style="margin-bottom: 0;">
                 <h2>Hygiene (+10 EXP)</h2>
                 <label class="task-item" style="margin-bottom: 0;"><input type="checkbox" id="cb_hygiene" class="task-checkbox" value="10" onchange="updatePoints(this)">
-                    <div><span class="task-title">Daily Body Care Routine Executed</span><span class="task-points">+10 EXP </span></div></label>
+                    <div><span class="task-title">Daily Body Care Routine Executed</span><span class="task-points">+10 EXP</span></div></label>
             </div>
         </div>
     </div>
@@ -168,7 +192,6 @@
         let completedWorkoutsArray = Array(TOTAL_DAYS).fill(false);
         let currentDayNum = 1;
 
-        // Watch for user login/logout
         auth.onAuthStateChanged(user => {
             if (user) {
                 currentUser = user;
@@ -180,7 +203,6 @@
                 currentUser = null;
                 document.getElementById('loginForm').style.display = 'block';
                 document.getElementById('loggedInView').style.display = 'none';
-                // Load local dummy data if not logged in
                 calculateDates();
                 refreshUI();
             }
@@ -200,28 +222,22 @@
 
         function logout() { auth.signOut(); }
 
-        // --- CLOUD SYNC LOGIC ---
         async function syncDataFromCloud() {
             if (!currentUser) return;
             const docRef = db.collection('users').doc(currentUser.uid);
             const doc = await docRef.get();
-            
             if (doc.exists) {
                 const data = doc.data();
                 totalPoints = data.points || 0;
                 startDate = data.startDate || new Date().getTime();
                 completedWorkoutsArray = data.calendar || Array(TOTAL_DAYS).fill(false);
-                
-                // Restore checkboxes for today
                 const boxes = data.todaysCheckboxes || {};
                 document.querySelectorAll('.task-checkbox').forEach(cb => {
                     cb.checked = boxes[cb.id] === true;
                 });
             } else {
-                // First time user, save initial state
                 saveDataToCloud();
             }
-            
             calculateDates();
             checkMidnightReset();
             calculateDynamicWorkout();
@@ -231,12 +247,10 @@
 
         function saveDataToCloud() {
             if (!currentUser) return;
-            
             let checkboxStates = {};
             document.querySelectorAll('.task-checkbox').forEach(cb => {
                 checkboxStates[cb.id] = cb.checked;
             });
-
             db.collection('users').doc(currentUser.uid).set({
                 points: totalPoints,
                 startDate: startDate,
@@ -246,7 +260,6 @@
             }, { merge: true });
         }
 
-        // --- APP LOGIC ---
         function calculateDates() {
             const start = new Date(startDate);
             const now = new Date();
@@ -260,9 +273,7 @@
             if(!currentUser) return;
             const currentIST = new Date().toLocaleDateString("en-IN", {timeZone: "Asia/Kolkata"});
             const doc = await db.collection('users').doc(currentUser.uid).get();
-            
             if(doc.exists && doc.data().lastActiveDate !== currentIST) {
-                // It's a new day, uncheck all boxes
                 document.querySelectorAll('.task-checkbox').forEach(cb => cb.checked = false);
                 saveDataToCloud();
             }
@@ -271,17 +282,14 @@
         function updatePoints(checkbox) {
             const val = parseInt(checkbox.value);
             totalPoints += checkbox.checked ? val : -val;
-            
-            // Check if full workout is done
             const w1 = document.getElementById('cb_workout_upper').checked;
             const w2 = document.getElementById('cb_workout_lower').checked;
             const w3 = document.getElementById('cb_workout_back').checked;
             const w4 = document.getElementById('cb_workout_core').checked;
             completedWorkoutsArray[currentDayNum - 1] = (w1 && w2 && w3 && w4);
-
             refreshUI();
             renderCalendar();
-            saveDataToCloud(); // Push immediately to cloud
+            saveDataToCloud();
         }
 
         function calculateDynamicWorkout() {
@@ -289,10 +297,45 @@
             document.getElementById('weekIndicator').innerText = `Week ${week > 12 ? 12 : week}`;
             
             const txt = { u: document.getElementById('text_upper'), l: document.getElementById('text_lower'), b: document.getElementById('text_back'), c: document.getElementById('text_core') };
+            const desc = { u: document.getElementById('desc_upper'), l: document.getElementById('desc_lower'), b: document.getElementById('desc_back'), c: document.getElementById('desc_core') };
             
-            if (week <= 2) { txt.u.innerText = "Upper: Incline Push-ups"; txt.l.innerText = "Lower: Squats"; txt.b.innerText = "Back: Door Pulls"; txt.c.innerText = "Core: Planks"; }
-            else if (week <= 8) { txt.u.innerText = "Upper: Floor Push-ups"; txt.l.innerText = "Lower: Lunges"; txt.b.innerText = "Back: Towel Rows"; txt.c.innerText = "Core: Dead Bugs"; }
-            else { txt.u.innerText = "Upper: Decline Push-ups"; txt.l.innerText = "Lower: Bulgarian Splits"; txt.b.innerText = "Back: Door Rows"; txt.c.innerText = "Core: Hollow Holds"; }
+            // Progression logic with Sets/Reps/Time
+            if (week <= 2) { 
+                txt.u.innerText = "Upper: Incline Push-ups"; desc.u.innerText = "3 Sets x 5-8 Reps";
+                txt.l.innerText = "Lower: Standard Squats"; desc.l.innerText = "3 Sets x 10 Reps";
+                txt.b.innerText = "Back: Doorframe Pulls"; desc.b.innerText = "3 Sets x 10 Reps";
+                txt.c.innerText = "Core: Forearm Planks"; desc.c.innerText = "3 Sets x 20 Sec";
+            }
+            else if (week <= 4) {
+                txt.u.innerText = "Upper: Incline Push-ups"; desc.u.innerText = "3 Sets x 8-12 Reps";
+                txt.l.innerText = "Lower: Standard Squats"; desc.l.innerText = "3 Sets x 15 Reps";
+                txt.b.innerText = "Back: Doorframe Pulls"; desc.b.innerText = "3 Sets x 12 Reps";
+                txt.c.innerText = "Core: Forearm Planks"; desc.c.innerText = "3 Sets x 30 Sec";
+            }
+            else if (week <= 6) {
+                txt.u.innerText = "Upper: Floor Push-ups"; desc.u.innerText = "3 Sets x 5-8 Reps";
+                txt.l.innerText = "Lower: Reverse Lunges"; desc.l.innerText = "3 Sets x 10 Reps/Leg";
+                txt.b.innerText = "Back: Towel Rows"; desc.b.innerText = "3 Sets x 10 Reps";
+                txt.c.innerText = "Core: Dead Bugs"; desc.c.innerText = "3 Sets x 10 Reps";
+            }
+            else if (week <= 8) {
+                txt.u.innerText = "Upper: Floor Push-ups"; desc.u.innerText = "3 Sets x 8-12 Reps";
+                txt.l.innerText = "Lower: Reverse Lunges"; desc.l.innerText = "3 Sets x 15 Reps/Leg";
+                txt.b.innerText = "Back: Towel Rows"; desc.b.innerText = "3 Sets x 12 Reps";
+                txt.c.innerText = "Core: Dead Bugs"; desc.c.innerText = "3 Sets x 15 Reps";
+            }
+            else if (week <= 10) {
+                txt.u.innerText = "Upper: Decline Push-ups"; desc.u.innerText = "3 Sets x 5-8 Reps";
+                txt.l.innerText = "Lower: Bulgarian Splits"; desc.l.innerText = "3 Sets x 8 Reps/Leg";
+                txt.b.innerText = "Back: Doorframe Rows"; desc.b.innerText = "3 Sets x 15 Reps";
+                txt.c.innerText = "Core: Hollow Body Holds"; desc.c.innerText = "3 Sets x 30 Sec";
+            }
+            else {
+                txt.u.innerText = "Upper: Decline Push-ups"; desc.u.innerText = "3 Sets x 8-12 Reps (Add Weight)";
+                txt.l.innerText = "Lower: Bulgarian Splits"; desc.l.innerText = "3 Sets x 12 Reps/Leg";
+                txt.b.innerText = "Back: Doorframe Rows"; desc.b.innerText = "3 Sets x 15 Reps (Lean Back)";
+                txt.c.innerText = "Core: Hollow Body Holds"; desc.c.innerText = "3 Sets x 45 Sec";
+            }
         }
 
         function refreshUI() {
@@ -313,22 +356,13 @@
             }
         }
 
-        // --- HARD RESET LOGIC ---
         async function hardReset() {
-            if (!currentUser) {
-                alert("Please log in to reset your cloud data.");
-                return;
-            }
-            if(confirm("WARNING: This will permanently erase your 90-day progress, points, and start date from the cloud. Are you 100% sure?")) {
-                // Reset local state
+            if (!currentUser) { alert("Please log in to reset your cloud data."); return; }
+            if(confirm("WARNING: This will permanently erase your 90-day progress, points, and start date. Are you 100% sure?")) {
                 totalPoints = 0;
                 startDate = new Date().getTime();
                 completedWorkoutsArray = Array(TOTAL_DAYS).fill(false);
-                
-                // Uncheck all daily boxes
                 document.querySelectorAll('.task-checkbox').forEach(cb => cb.checked = false);
-                
-                // Overwrite cloud data with a fresh start
                 await db.collection('users').doc(currentUser.uid).set({
                     points: totalPoints,
                     startDate: startDate,
@@ -336,8 +370,6 @@
                     todaysCheckboxes: {},
                     lastActiveDate: new Date().toLocaleDateString("en-IN", {timeZone: "Asia/Kolkata"})
                 });
-                
-                // Update the screen immediately
                 calculateDates();
                 calculateDynamicWorkout();
                 refreshUI();
