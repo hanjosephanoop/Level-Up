@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glow-Up Protocol: 90-Day Recomp</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #121212; --panel-bg: #1e1e1e; --accent: #00ffcc;
+            --text-main: #ffffff; --text-muted: #aaaaaa;
+            --day-bg: #2a2a2a; --day-completed: #00ffcc; --day-current: #ffaa00;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color); color: var(--text-main);
+            margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center;
+        }
+        h1 { color: var(--accent); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px; text-align: center; }
+        .dashboard {
+            background-color: var(--panel-bg); border: 2px solid #333; border-radius: 12px;
+            padding: 20px; width: 100%; max-width: 600px; box-shadow: 0 0 20px rgba(0, 255, 204, 0.05); margin-bottom: 20px;
+        }
+        
+        /* Auth UI */
+        .auth-panel { text-align: center; margin-bottom: 15px; padding: 10px; background: #222; border-radius: 8px; }
+        .auth-input { padding: 8px; margin: 5px; border-radius: 4px; border: 1px solid #444; background: #333; color: white; }
+        .btn { padding: 8px 15px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        .btn-primary { background: var(--accent); color: #000; }
+        .btn-secondary { background: #444; color: white; }
+        
+        /* Layout Elements */
+        .stats-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .score-display { font-size: 20px; font-weight: bold; }
+        .score-display span { color: var(--accent); font-size: 28px; }
+        .day-tracker { font-size: 16px; color: var(--day-current); font-weight: bold; border: 1px solid var(--day-current); padding: 5px 10px; border-radius: 5px; }
+        
+        .calendar-section { margin-top: 15px; margin-bottom: 15px; text-align: center; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(15, 1fr); gap: 4px; margin-top: 10px; }
+        .day-box { aspect-ratio: 1; background-color: var(--day-bg); border-radius: 3px; display: flex; align-items: center; justify-content: center; font-size: 10px; transition: 0.3s; }
+        .day-box.completed { background-color: var(--day-completed); box-shadow: 0 0 5px var(--day-completed); }
+        .day-box.current { border: 2px solid var(--day-current); }
+
+        .progress-bar-container { width: 100%; background-color: #333; border-radius: 10px; height: 15px; overflow: hidden; margin-bottom: 20px; }
+        .progress-fill { height: 100%; background-color: var(--accent); width: 0%; transition: width 0.4s ease; }
+
+        .task-section h2 { border-bottom: 1px solid #444; padding-bottom: 5px; font-size: 18px; color: var(--text-muted); text-transform: uppercase; display: flex; justify-content: space-between; }
+        .task-item { display: flex; align-items: center; background-color: #2a2a2a; padding: 12px; border-radius: 8px; margin-bottom: 10px; }
+        .task-item input[type="checkbox"] { margin-right: 15px; width: 20px; height: 20px; accent-color: var(--accent); cursor: pointer; }
+        .task-title { font-weight: bold; font-size: 16px; }
+        .task-points { font-size: 12px; color: var(--accent); margin-top: 3px; display: block; }
+    </style>
+</head>
+<body>
+
+    <h1>Glow-Up Protocol</h1>
+    
+    <div class="dashboard auth-panel" id="authSection">
+        <div id="loginForm">
+            <h3 style="margin-top:0;">Cloud Sync Account</h3>
+            <input type="email" id="email" class="auth-input" placeholder="Email">
+            <input type="password" id="password" class="auth-input" placeholder="Password">
+            <br>
+            <button class="btn btn-primary" onclick="login()">Log In</button>
+            <button class="btn btn-secondary" onclick="register()">Sign Up</button>
+            <p id="authError" style="color: #ff4444; font-size: 12px;"></p>
+        </div>
+        <div id="loggedInView" style="display: none;">
+            <p style="margin: 0;">Logged in as: <span id="userEmail" style="color: var(--accent);"></span></p>
+            <button class="btn btn-secondary" style="margin-top: 10px;" onclick="logout()">Log Out</button>
+        </div>
+    </div>
+
+    <div id="appInterface">
+        <div class="dashboard">
+            <div class="stats-container">
+                <div class="score-display">EXP: <span id="currentPoints">0</span> / 500</div>
+                <div class="day-tracker" id="dayTracker">Day 1 / 90</div>
+            </div>
+            
+            <div class="progress-bar-container">
+                <div class="progress-fill" id="progressBar"></div>
+            </div>
+            
+            <div class="calendar-section">
+                <div style="font-size: 12px; color: var(--text-muted); text-align: left;">3-Month Consistency Grid</div>
+                <div class="calendar-grid" id="calendarGrid"></div>
+            </div>
+        </div>
+
+        <div class="dashboard">
+            <div class="task-section">
+                <h2>Nutrition (+10 EXP)</h2>
+                <label class="task-item"><input type="checkbox" id="cb_protein" class="task-checkbox" value="5" onchange="updatePoints(this)">
+                    <div><span class="task-title">Hit 120g-140g Protein</span><span class="task-points">+5 EXP</span></div></label>
+                <label class="task-item"><input type="checkbox" id="cb_calories" class="task-checkbox" value="5" onchange="updatePoints(this)">
+                    <div><span class="task-title">Caloric Surplus Maintained</span><span class="task-points">+5 EXP</span></div></label>
+            </div>
+
+            <div class="task-section">
+                <h2>Calisthenics (+20 EXP) <span id="weekIndicator" style="color: var(--accent); font-size: 14px;">Week 1</span></h2>
+                <label class="task-item"><input type="checkbox" id="cb_workout_upper" class="task-checkbox" value="5" onchange="updatePoints(this)">
+                    <div><span class="task-title" id="text_upper">Upper Body</span><span class="task-points">+5 EXP</span></div></label>
+                <label class="task-item"><input type="checkbox" id="cb_workout_lower" class="task-checkbox" value="5" onchange="updatePoints(this)">
+                    <div><span class="task-title" id="text_lower">Lower Body</span><span class="task-points">+5 EXP</span></div></label>
+                <label class="task-item"><input type="checkbox" id="cb_workout_back" class="task-checkbox" value="5" onchange="updatePoints(this)">
+                    <div><span class="task-title" id="text_back">Back / Pulls</span><span class="task-points">+5 EXP</span></div></label>
+                <label class="task-item"><input type="checkbox" id="cb_workout_core" class="task-checkbox" value="5" onchange="updatePoints(this)">
+                    <div><span class="task-title" id="text_core">Core Strength</span><span class="task-points">+5 EXP</span></div></label>
+            </div>
+            
+            <div class="task-section">
+                <h2>Hygiene (+10 EXP)</h2>
+                <label class="task-item"><input type="checkbox" id="cb_hygiene" class="task-checkbox" value="10" onchange="updatePoints(this)">
+                    <div><span class="task-title">Post-Match Protocol Executed</span><span class="task-points">+10 EXP (BPO Routine)</span></div></label>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // PASTE YOUR FIREBASE CONFIGURATION HERE
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyAQqPjM9TlwRFXnSFs1rkXFApXSOrI3hOw",
+            authDomain: "glow-up-protocol.firebaseapp.com",
+            projectId: "glow-up-protocol",
+            storageBucket: "glow-up-protocol.firebasestorage.app",
+            messagingSenderId: "58663914559",
+            appId: "1:58663914559:web:96016980d10e1331d87c8a",
+            measurementId: "G-0EWGLZ0TT6"
+        };
+        // ==========================================
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        const MAX_POINTS = 500;
+        const TOTAL_DAYS = 90;
+        let currentUser = null;
+
+        // Core App State
+        let totalPoints = 0;
+        let startDate = new Date().getTime();
+        let completedWorkoutsArray = Array(TOTAL_DAYS).fill(false);
+        let currentDayNum = 1;
+
+        // Watch for user login/logout
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('loginForm').style.display = 'none';
+                document.getElementById('loggedInView').style.display = 'block';
+                document.getElementById('userEmail').innerText = user.email;
+                syncDataFromCloud();
+            } else {
+                currentUser = null;
+                document.getElementById('loginForm').style.display = 'block';
+                document.getElementById('loggedInView').style.display = 'none';
+                // Load local dummy data if not logged in
+                calculateDates();
+                refreshUI();
+            }
+        });
+
+        function register() {
+            const e = document.getElementById('email').value;
+            const p = document.getElementById('password').value;
+            auth.createUserWithEmailAndPassword(e, p).catch(err => document.getElementById('authError').innerText = err.message);
+        }
+
+        function login() {
+            const e = document.getElementById('email').value;
+            const p = document.getElementById('password').value;
+            auth.signInWithEmailAndPassword(e, p).catch(err => document.getElementById('authError').innerText = err.message);
+        }
+
+        function logout() { auth.signOut(); }
+
+        // --- CLOUD SYNC LOGIC ---
+        async function syncDataFromCloud() {
+            if (!currentUser) return;
+            const docRef = db.collection('users').doc(currentUser.uid);
+            const doc = await docRef.get();
+            
+            if (doc.exists) {
+                const data = doc.data();
+                totalPoints = data.points || 0;
+                startDate = data.startDate || new Date().getTime();
+                completedWorkoutsArray = data.calendar || Array(TOTAL_DAYS).fill(false);
+                
+                // Restore checkboxes for today
+                const boxes = data.todaysCheckboxes || {};
+                document.querySelectorAll('.task-checkbox').forEach(cb => {
+                    cb.checked = boxes[cb.id] === true;
+                });
+            } else {
+                // First time user, save initial state
+                saveDataToCloud();
+            }
+            
+            calculateDates();
+            checkMidnightReset();
+            calculateDynamicWorkout();
+            refreshUI();
+            renderCalendar();
+        }
+
+        function saveDataToCloud() {
+            if (!currentUser) return;
+            
+            let checkboxStates = {};
+            document.querySelectorAll('.task-checkbox').forEach(cb => {
+                checkboxStates[cb.id] = cb.checked;
+            });
+
+            db.collection('users').doc(currentUser.uid).set({
+                points: totalPoints,
+                startDate: startDate,
+                calendar: completedWorkoutsArray,
+                todaysCheckboxes: checkboxStates,
+                lastActiveDate: new Date().toLocaleDateString("en-IN", {timeZone: "Asia/Kolkata"})
+            }, { merge: true });
+        }
+
+        // --- APP LOGIC ---
+        function calculateDates() {
+            const start = new Date(startDate);
+            const now = new Date();
+            const diff = now.getTime() - start.getTime();
+            currentDayNum = Math.floor(diff / (1000 * 60 * 60 * 24)) + 1;
+            if (currentDayNum > TOTAL_DAYS) currentDayNum = TOTAL_DAYS;
+            document.getElementById('dayTracker').innerText = `Day ${currentDayNum} / 90`;
+        }
+
+        async function checkMidnightReset() {
+            if(!currentUser) return;
+            const currentIST = new Date().toLocaleDateString("en-IN", {timeZone: "Asia/Kolkata"});
+            const doc = await db.collection('users').doc(currentUser.uid).get();
+            
+            if(doc.exists && doc.data().lastActiveDate !== currentIST) {
+                // It's a new day, uncheck all boxes
+                document.querySelectorAll('.task-checkbox').forEach(cb => cb.checked = false);
+                saveDataToCloud();
+            }
+        }
+
+        function updatePoints(checkbox) {
+            const val = parseInt(checkbox.value);
+            totalPoints += checkbox.checked ? val : -val;
+            
+            // Check if full workout is done
+            const w1 = document.getElementById('cb_workout_upper').checked;
+            const w2 = document.getElementById('cb_workout_lower').checked;
+            const w3 = document.getElementById('cb_workout_back').checked;
+            const w4 = document.getElementById('cb_workout_core').checked;
+            completedWorkoutsArray[currentDayNum - 1] = (w1 && w2 && w3 && w4);
+
+            refreshUI();
+            renderCalendar();
+            saveDataToCloud(); // Push immediately to cloud
+        }
+
+        function calculateDynamicWorkout() {
+            const week = Math.ceil(currentDayNum / 7);
+            document.getElementById('weekIndicator').innerText = `Week ${week > 12 ? 12 : week}`;
+            
+            const txt = { u: document.getElementById('text_upper'), l: document.getElementById('text_lower'), b: document.getElementById('text_back'), c: document.getElementById('text_core') };
+            
+            if (week <= 2) { txt.u.innerText = "Upper: Incline Push-ups"; txt.l.innerText = "Lower: Squats"; txt.b.innerText = "Back: Door Pulls"; txt.c.innerText = "Core: Planks"; }
+            else if (week <= 8) { txt.u.innerText = "Upper: Floor Push-ups"; txt.l.innerText = "Lower: Lunges"; txt.b.innerText = "Back: Towel Rows"; txt.c.innerText = "Core: Dead Bugs"; }
+            else { txt.u.innerText = "Upper: Decline Push-ups"; txt.l.innerText = "Lower: Bulgarian Splits"; txt.b.innerText = "Back: Door Rows"; txt.c.innerText = "Core: Hollow Holds"; }
+        }
+
+        function refreshUI() {
+            const vis = totalPoints > MAX_POINTS ? MAX_POINTS : totalPoints;
+            document.getElementById('currentPoints').innerText = totalPoints;
+            document.getElementById('progressBar').style.width = (vis / MAX_POINTS * 100) + '%';
+        }
+
+        function renderCalendar() {
+            const grid = document.getElementById('calendarGrid');
+            grid.innerHTML = '';
+            for (let i = 0; i < TOTAL_DAYS; i++) {
+                const box = document.createElement('div');
+                box.className = 'day-box';
+                if (completedWorkoutsArray[i]) box.classList.add('completed');
+                if (i === currentDayNum - 1) box.classList.add('current');
+                grid.appendChild(box);
+            }
+        }
+    </script>
+</body>
+</html>
