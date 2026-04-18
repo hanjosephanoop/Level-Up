@@ -34,10 +34,13 @@
         .btn-secondary { background: #444; color: white; }
         
         /* Layout Elements */
-        .stats-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .score-display { font-size: 20px; font-weight: bold; }
-        .score-display span { color: var(--accent); font-size: 28px; }
-        .day-tracker { font-size: 16px; color: var(--day-current); font-weight: bold; border: 1px solid var(--day-current); padding: 5px 10px; border-radius: 5px; }
+        .stats-container { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+        .level-display { font-size: 24px; font-weight: bold; color: var(--accent); }
+        .score-display { font-size: 14px; color: var(--text-muted); text-align: right; }
+        .score-display span { color: var(--accent); font-size: 18px; font-weight: bold; }
+        .total-xp-display { font-size: 12px; color: #666; margin-top: 5px; text-transform: uppercase; letter-spacing: 1px; }
+
+        .day-tracker { font-size: 16px; color: var(--day-current); font-weight: bold; border: 1px solid var(--day-current); padding: 5px 10px; border-radius: 5px; margin-top: 10px; }
         
         .calendar-section { margin-top: 15px; margin-bottom: 15px; text-align: center; }
         .calendar-grid { display: grid; grid-template-columns: repeat(15, 1fr); gap: 4px; margin-top: 10px; }
@@ -45,7 +48,7 @@
         .day-box.completed { background-color: var(--day-completed); box-shadow: 0 0 5px var(--day-completed); }
         .day-box.current { border: 2px solid var(--day-current); }
 
-        .progress-bar-container { width: 100%; background-color: #333; border-radius: 10px; height: 15px; overflow: hidden; margin-bottom: 20px; }
+        .progress-bar-container { width: 100%; background-color: #333; border-radius: 10px; height: 15px; overflow: hidden; margin-bottom: 10px; position: relative; }
         .progress-fill { height: 100%; background-color: var(--accent); width: 0%; transition: width 0.4s ease; }
 
         .task-section h2 { border-bottom: 1px solid #444; padding-bottom: 5px; font-size: 18px; color: var(--text-muted); text-transform: uppercase; display: flex; justify-content: space-between; }
@@ -55,20 +58,8 @@
         .task-points { font-size: 12px; color: var(--accent); margin-top: 3px; display: block; }
 
         /* Reset Button Styling */
-        .reset-btn {
-            background-color: transparent;
-            color: #ff4444;
-            border: 1px solid #ff4444;
-            padding: 8px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 20px;
-        }
-
-        .reset-btn:hover {
-            background-color: #ff4444;
-            color: white;
-        }
+        .reset-btn { background-color: transparent; color: #555; border: 1px solid #333; padding: 8px 15px; border-radius: 5px; cursor: pointer; margin-top: 20px; transition: 0.3s; }
+        .reset-btn:hover { border-color: #ff4444; color: #ff4444; }
     </style>
 </head>
 <body>
@@ -94,8 +85,14 @@
     <div id="appInterface">
         <div class="dashboard">
             <div class="stats-container">
-                <div class="score-display">EXP: <span id="currentPoints">0</span> / 500</div>
-                <div class="day-tracker" id="dayTracker">Day 1 / 90</div>
+                <div>
+                    <div class="level-display" id="levelText">Level 1</div>
+                    <div class="total-xp-display">Mastery XP: <span id="masteryXP">0</span></div>
+                </div>
+                <div style="text-align: right;">
+                    <div class="score-display">Next Level: <span id="currentPoints">0</span> / 500</div>
+                    <div class="day-tracker" id="dayTracker">Day 1 / 90</div>
+                </div>
             </div>
             
             <div class="progress-bar-container">
@@ -122,34 +119,22 @@
                 
                 <label class="task-item">
                     <input type="checkbox" id="cb_workout_upper" class="task-checkbox" value="5" onchange="updatePoints(this)">
-                    <div>
-                        <span class="task-title" id="text_upper">Upper Body</span>
-                        <span class="task-points" id="desc_upper">+5 EXP</span>
-                    </div>
+                    <div><span class="task-title" id="text_upper">Upper Body</span><span class="task-points" id="desc_upper">+5 EXP</span></div>
                 </label>
 
                 <label class="task-item">
                     <input type="checkbox" id="cb_workout_lower" class="task-checkbox" value="5" onchange="updatePoints(this)">
-                    <div>
-                        <span class="task-title" id="text_lower">Lower Body</span>
-                        <span class="task-points" id="desc_lower">+5 EXP</span>
-                    </div>
+                    <div><span class="task-title" id="text_lower">Lower Body</span><span class="task-points" id="desc_lower">+5 EXP</span></div>
                 </label>
 
                 <label class="task-item">
                     <input type="checkbox" id="cb_workout_back" class="task-checkbox" value="5" onchange="updatePoints(this)">
-                    <div>
-                        <span class="task-title" id="text_back">Back / Pulls</span>
-                        <span class="task-points" id="desc_back">+5 EXP</span>
-                    </div>
+                    <div><span class="task-title" id="text_back">Back / Pulls</span><span class="task-points" id="desc_back">+5 EXP</span></div>
                 </label>
 
                 <label class="task-item">
                     <input type="checkbox" id="cb_workout_core" class="task-checkbox" value="5" onchange="updatePoints(this)">
-                    <div>
-                        <span class="task-title" id="text_core">Core Strength</span>
-                        <span class="task-points" id="desc_core">+5 EXP</span>
-                    </div>
+                    <div><span class="task-title" id="text_core">Core Strength</span><span class="task-points" id="desc_core">+5 EXP</span></div>
                 </label>
             </div>
             
@@ -161,11 +146,11 @@
         </div>
     </div>
 
-    <button class="reset-btn" style="border-color: #666; color: #666; margin-top: 20px; margin-bottom: 40px;" onclick="hardReset()">Hard Reset (Wipe Cloud Data)</button>
+    <button class="reset-btn" onclick="hardReset()">Hard Reset (Wipe Cloud Data)</button>
 
     <script>
         // ==========================================
-        // PASTE YOUR FIREBASE CONFIGURATION HERE
+        // FIREBASE CONFIGURATION
         // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyAQqPjM9TlwRFXnSFs1rkXFApXSOrI3hOw",
@@ -176,18 +161,17 @@
             appId: "1:58663914559:web:96016980d10e1331d87c8a",
             measurementId: "G-0EWGLZ0TT6"
         };
-        // ==========================================
 
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        const MAX_POINTS = 500;
+        const MAX_POINTS_PER_LEVEL = 500;
         const TOTAL_DAYS = 90;
         let currentUser = null;
 
         // Core App State
-        let totalPoints = 0;
+        let totalCumulativePoints = 0;
         let startDate = new Date().getTime();
         let completedWorkoutsArray = Array(TOTAL_DAYS).fill(false);
         let currentDayNum = 1;
@@ -228,7 +212,7 @@
             const doc = await docRef.get();
             if (doc.exists) {
                 const data = doc.data();
-                totalPoints = data.points || 0;
+                totalCumulativePoints = data.points || 0;
                 startDate = data.startDate || new Date().getTime();
                 completedWorkoutsArray = data.calendar || Array(TOTAL_DAYS).fill(false);
                 const boxes = data.todaysCheckboxes || {};
@@ -252,7 +236,7 @@
                 checkboxStates[cb.id] = cb.checked;
             });
             db.collection('users').doc(currentUser.uid).set({
-                points: totalPoints,
+                points: totalCumulativePoints,
                 startDate: startDate,
                 calendar: completedWorkoutsArray,
                 todaysCheckboxes: checkboxStates,
@@ -281,12 +265,14 @@
 
         function updatePoints(checkbox) {
             const val = parseInt(checkbox.value);
-            totalPoints += checkbox.checked ? val : -val;
+            totalCumulativePoints += checkbox.checked ? val : -val;
+            
             const w1 = document.getElementById('cb_workout_upper').checked;
             const w2 = document.getElementById('cb_workout_lower').checked;
             const w3 = document.getElementById('cb_workout_back').checked;
             const w4 = document.getElementById('cb_workout_core').checked;
             completedWorkoutsArray[currentDayNum - 1] = (w1 && w2 && w3 && w4);
+            
             refreshUI();
             renderCalendar();
             saveDataToCloud();
@@ -295,42 +281,35 @@
         function calculateDynamicWorkout() {
             const week = Math.ceil(currentDayNum / 7);
             document.getElementById('weekIndicator').innerText = `Week ${week > 12 ? 12 : week}`;
-            
             const txt = { u: document.getElementById('text_upper'), l: document.getElementById('text_lower'), b: document.getElementById('text_back'), c: document.getElementById('text_core') };
             const desc = { u: document.getElementById('desc_upper'), l: document.getElementById('desc_lower'), b: document.getElementById('desc_back'), c: document.getElementById('desc_core') };
             
-            // Progression logic with Sets/Reps/Time
             if (week <= 2) { 
                 txt.u.innerText = "Upper: Incline Push-ups"; desc.u.innerText = "3 Sets x 5-8 Reps";
                 txt.l.innerText = "Lower: Standard Squats"; desc.l.innerText = "3 Sets x 10 Reps";
                 txt.b.innerText = "Back: Doorframe Pulls"; desc.b.innerText = "3 Sets x 10 Reps";
                 txt.c.innerText = "Core: Forearm Planks"; desc.c.innerText = "3 Sets x 20 Sec";
-            }
-            else if (week <= 4) {
+            } else if (week <= 4) {
                 txt.u.innerText = "Upper: Incline Push-ups"; desc.u.innerText = "3 Sets x 8-12 Reps";
                 txt.l.innerText = "Lower: Standard Squats"; desc.l.innerText = "3 Sets x 15 Reps";
                 txt.b.innerText = "Back: Doorframe Pulls"; desc.b.innerText = "3 Sets x 12 Reps";
                 txt.c.innerText = "Core: Forearm Planks"; desc.c.innerText = "3 Sets x 30 Sec";
-            }
-            else if (week <= 6) {
+            } else if (week <= 6) {
                 txt.u.innerText = "Upper: Floor Push-ups"; desc.u.innerText = "3 Sets x 5-8 Reps";
                 txt.l.innerText = "Lower: Reverse Lunges"; desc.l.innerText = "3 Sets x 10 Reps/Leg";
                 txt.b.innerText = "Back: Towel Rows"; desc.b.innerText = "3 Sets x 10 Reps";
                 txt.c.innerText = "Core: Dead Bugs"; desc.c.innerText = "3 Sets x 10 Reps";
-            }
-            else if (week <= 8) {
+            } else if (week <= 8) {
                 txt.u.innerText = "Upper: Floor Push-ups"; desc.u.innerText = "3 Sets x 8-12 Reps";
                 txt.l.innerText = "Lower: Reverse Lunges"; desc.l.innerText = "3 Sets x 15 Reps/Leg";
                 txt.b.innerText = "Back: Towel Rows"; desc.b.innerText = "3 Sets x 12 Reps";
                 txt.c.innerText = "Core: Dead Bugs"; desc.c.innerText = "3 Sets x 15 Reps";
-            }
-            else if (week <= 10) {
+            } else if (week <= 10) {
                 txt.u.innerText = "Upper: Decline Push-ups"; desc.u.innerText = "3 Sets x 5-8 Reps";
                 txt.l.innerText = "Lower: Bulgarian Splits"; desc.l.innerText = "3 Sets x 8 Reps/Leg";
                 txt.b.innerText = "Back: Doorframe Rows"; desc.b.innerText = "3 Sets x 15 Reps";
                 txt.c.innerText = "Core: Hollow Body Holds"; desc.c.innerText = "3 Sets x 30 Sec";
-            }
-            else {
+            } else {
                 txt.u.innerText = "Upper: Decline Push-ups"; desc.u.innerText = "3 Sets x 8-12 Reps (Add Weight)";
                 txt.l.innerText = "Lower: Bulgarian Splits"; desc.l.innerText = "3 Sets x 12 Reps/Leg";
                 txt.b.innerText = "Back: Doorframe Rows"; desc.b.innerText = "3 Sets x 15 Reps (Lean Back)";
@@ -339,9 +318,14 @@
         }
 
         function refreshUI() {
-            const vis = totalPoints > MAX_POINTS ? MAX_POINTS : totalPoints;
-            document.getElementById('currentPoints').innerText = totalPoints;
-            document.getElementById('progressBar').style.width = (vis / MAX_POINTS * 100) + '%';
+            // Level Logic
+            const currentLevel = Math.floor(totalCumulativePoints / MAX_POINTS_PER_LEVEL) + 1;
+            const pointsInCurrentLevel = totalCumulativePoints % MAX_POINTS_PER_LEVEL;
+            
+            document.getElementById('levelText').innerText = `Level ${currentLevel}`;
+            document.getElementById('masteryXP').innerText = totalCumulativePoints;
+            document.getElementById('currentPoints').innerText = pointsInCurrentLevel;
+            document.getElementById('progressBar').style.width = (pointsInCurrentLevel / MAX_POINTS_PER_LEVEL * 100) + '%';
         }
 
         function renderCalendar() {
@@ -358,13 +342,13 @@
 
         async function hardReset() {
             if (!currentUser) { alert("Please log in to reset your cloud data."); return; }
-            if(confirm("WARNING: This will permanently erase your 90-day progress, points, and start date. Are you 100% sure?")) {
-                totalPoints = 0;
+            if(confirm("WARNING: This will permanently erase your all-time mastery XP, progress, and level. Are you 100% sure?")) {
+                totalCumulativePoints = 0;
                 startDate = new Date().getTime();
                 completedWorkoutsArray = Array(TOTAL_DAYS).fill(false);
                 document.querySelectorAll('.task-checkbox').forEach(cb => cb.checked = false);
                 await db.collection('users').doc(currentUser.uid).set({
-                    points: totalPoints,
+                    points: 0,
                     startDate: startDate,
                     calendar: completedWorkoutsArray,
                     todaysCheckboxes: {},
@@ -374,7 +358,7 @@
                 calculateDynamicWorkout();
                 refreshUI();
                 renderCalendar();
-                alert("Protocol reset. Welcome back to Day 1.");
+                alert("Protocol reset. Level 1 initialized.");
             }
         }
     </script>
