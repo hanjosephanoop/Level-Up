@@ -26,14 +26,12 @@
             padding: 20px; width: 100%; max-width: 600px; box-shadow: 0 0 20px rgba(0, 255, 204, 0.05); margin-bottom: 20px;
         }
         
-        /* Auth UI */
         .auth-panel { text-align: center; margin-bottom: 15px; padding: 10px; background: #222; border-radius: 8px; }
         .auth-input { padding: 8px; margin: 5px; border-radius: 4px; border: 1px solid #444; background: #333; color: white; }
         .btn { padding: 8px 15px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; }
         .btn-primary { background: var(--accent); color: #000; }
         .btn-secondary { background: #444; color: white; }
         
-        /* Layout Elements */
         .stats-container { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
         .level-display { font-size: 24px; font-weight: bold; color: var(--accent); }
         .score-display { font-size: 14px; color: var(--text-muted); text-align: right; }
@@ -123,26 +121,14 @@
 
             <div class="task-section">
                 <h2>Calisthenics (+20 EXP) <span id="weekIndicator" style="color: var(--accent); font-size: 14px;">Week 1</span></h2>
-                
-                <label class="task-item">
-                    <input type="checkbox" id="cb_workout_upper" class="task-checkbox" value="5" onchange="updatePoints(this)">
-                    <div><span class="task-title" id="text_upper">Upper Body</span><span class="task-points" id="desc_upper">+5 EXP</span></div>
-                </label>
-
-                <label class="task-item">
-                    <input type="checkbox" id="cb_workout_lower" class="task-checkbox" value="5" onchange="updatePoints(this)">
-                    <div><span class="task-title" id="text_lower">Lower Body</span><span class="task-points" id="desc_lower">+5 EXP</span></div>
-                </label>
-
-                <label class="task-item">
-                    <input type="checkbox" id="cb_workout_back" class="task-checkbox" value="5" onchange="updatePoints(this)">
-                    <div><span class="task-title" id="text_back">Back / Pulls</span><span class="task-points" id="desc_back">+5 EXP</span></div>
-                </label>
-
-                <label class="task-item">
-                    <input type="checkbox" id="cb_workout_core" class="task-checkbox" value="5" onchange="updatePoints(this)">
-                    <div><span class="task-title" id="text_core">Core Strength</span><span class="task-points" id="desc_core">+5 EXP</span></div>
-                </label>
+                <label class="task-item"><input type="checkbox" id="cb_workout_upper" class="task-checkbox" value="5" onchange="updatePoints(this)">
+                    <div><span class="task-title" id="text_upper">Upper Body</span><span class="task-points" id="desc_upper">+5 EXP</span></div></label>
+                <label class="task-item"><input type="checkbox" id="cb_workout_lower" class="task-checkbox" value="5" onchange="updatePoints(this)">
+                    <div><span class="task-title" id="text_lower">Lower Body</span><span class="task-points" id="desc_lower">+5 EXP</span></div></label>
+                <label class="task-item"><input type="checkbox" id="cb_workout_back" class="task-checkbox" value="5" onchange="updatePoints(this)">
+                    <div><span class="task-title" id="text_back">Back / Pulls</span><span class="task-points" id="desc_back">+5 EXP</span></div></label>
+                <label class="task-item"><input type="checkbox" id="cb_workout_core" class="task-checkbox" value="5" onchange="updatePoints(this)">
+                    <div><span class="task-title" id="text_core">Core Strength</span><span class="task-points" id="desc_core">+5 EXP</span></div></label>
             </div>
             
             <div class="task-section" style="margin-bottom: 0;">
@@ -175,7 +161,7 @@
         let currentUser = null;
 
         let totalCumulativePoints = 0;
-        let startDate = new Date().getTime();
+        let startDate = null;
         let completedWorkoutsArray = Array(TOTAL_DAYS).fill(false);
         let currentDayNum = 1;
 
@@ -209,24 +195,38 @@
 
         function logout() { auth.signOut(); }
 
+        // --- THE FIX: SMART SYNC AND RESET ---
         async function syncDataFromCloud() {
             if (!currentUser) return;
             const docRef = db.collection('users').doc(currentUser.uid);
             const doc = await docRef.get();
+            
             if (doc.exists) {
                 const data = doc.data();
                 totalCumulativePoints = data.points || 0;
-                startDate = data.startDate || new Date().getTime();
+                // If cloud has a startDate, use it, otherwise set it to start of today IST
+                startDate = data.startDate || getStartOfToday();
                 completedWorkoutsArray = data.calendar || Array(TOTAL_DAYS).fill(false);
-                const boxes = data.todaysCheckboxes || {};
-                document.querySelectorAll('.task-checkbox').forEach(cb => {
-                    cb.checked = boxes[cb.id] === true;
-                });
+                
+                const currentISTString = getISTDateString();
+                
+                // Reset logic: If the saved date in cloud is not today's date string, uncheck everything
+                if (data.lastActiveDate !== currentISTString) {
+                    document.querySelectorAll('.task-checkbox').forEach(cb => cb.checked = false);
+                    // Update cloud immediately with the new date but 0 checkboxes
+                    saveDataToCloud();
+                } else {
+                    const boxes = data.todaysCheckboxes || {};
+                    document.querySelectorAll('.task-checkbox').forEach(cb => {
+                        cb.checked = boxes[cb.id] === true;
+                    });
+                }
             } else {
+                startDate = getStartOfToday();
                 saveDataToCloud();
             }
+            
             calculateDates();
-            checkMidnightReset();
             calculateDynamicWorkout();
             refreshUI();
             renderCalendar();
@@ -243,27 +243,37 @@
                 startDate: startDate,
                 calendar: completedWorkoutsArray,
                 todaysCheckboxes: checkboxStates,
-                lastActiveDate: new Date().toLocaleDateString("en-IN", {timeZone: "Asia/Kolkata"})
+                lastActiveDate: getISTDateString()
             }, { merge: true });
         }
 
+        // --- THE FIX: CALENDAR DAY MATH (IST) ---
         function calculateDates() {
-            const start = new Date(startDate);
-            const now = new Date();
-            const diff = now.getTime() - start.getTime();
+            if (!startDate) return;
+            const today = getStartOfToday();
+            const diff = today - startDate;
+            
+            // This calculates how many full midnights have passed
             currentDayNum = Math.floor(diff / (1000 * 60 * 60 * 24)) + 1;
+            
             if (currentDayNum > TOTAL_DAYS) currentDayNum = TOTAL_DAYS;
+            if (currentDayNum < 1) currentDayNum = 1;
+            
             document.getElementById('dayTracker').innerText = `Day ${currentDayNum} / 90`;
         }
 
-        async function checkMidnightReset() {
-            if(!currentUser) return;
-            const currentIST = new Date().toLocaleDateString("en-IN", {timeZone: "Asia/Kolkata"});
-            const doc = await db.collection('users').doc(currentUser.uid).get();
-            if(doc.exists && doc.data().lastActiveDate !== currentIST) {
-                document.querySelectorAll('.task-checkbox').forEach(cb => cb.checked = false);
-                saveDataToCloud();
-            }
+        // Helper: Get today at 00:00:00 IST for consistent math
+        function getStartOfToday() {
+            const now = new Date();
+            // Create a date object specifically in Asia/Kolkata
+            const istDateStr = now.toLocaleString("en-US", {timeZone: "Asia/Kolkata"});
+            const istDate = new Date(istDateStr);
+            istDate.setHours(0, 0, 0, 0);
+            return istDate.getTime();
+        }
+
+        function getISTDateString() {
+            return new Date().toLocaleDateString("en-IN", {timeZone: "Asia/Kolkata"});
         }
 
         function updatePoints(checkbox) {
@@ -344,9 +354,9 @@
 
         async function hardReset() {
             if (!currentUser) { alert("Please log in to reset your cloud data."); return; }
-            if(confirm("WARNING: This will permanently erase your all-time mastery XP, progress, and level. Are you 100% sure?")) {
+            if(confirm("WARNING: This will permanently erase your progress and reset to Day 1. Proceed?")) {
                 totalCumulativePoints = 0;
-                startDate = new Date().getTime();
+                startDate = getStartOfToday();
                 completedWorkoutsArray = Array(TOTAL_DAYS).fill(false);
                 document.querySelectorAll('.task-checkbox').forEach(cb => cb.checked = false);
                 await db.collection('users').doc(currentUser.uid).set({
@@ -354,13 +364,13 @@
                     startDate: startDate,
                     calendar: completedWorkoutsArray,
                     todaysCheckboxes: {},
-                    lastActiveDate: new Date().toLocaleDateString("en-IN", {timeZone: "Asia/Kolkata"})
+                    lastActiveDate: getISTDateString()
                 });
                 calculateDates();
                 calculateDynamicWorkout();
                 refreshUI();
                 renderCalendar();
-                alert("Protocol reset. Level 1 initialized.");
+                alert("Protocol reset. Day 1 initialized.");
             }
         }
     </script>
