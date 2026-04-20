@@ -22,7 +22,6 @@
         }
         h1 { color: var(--accent); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; text-align: center; }
         
-        /* Side Menu Styling */
         .menu-btn { position: fixed; top: 20px; left: 20px; font-size: 24px; background: none; border: none; color: var(--accent); cursor: pointer; z-index: 1001; }
         .side-menu { 
             position: fixed; top: 0; left: 0; width: 280px; height: 100%; background: #181818; 
@@ -39,7 +38,6 @@
         .menu-item:hover { background: #333; border-color: var(--accent); }
         .menu-logout { color: #ff4444; border-color: #442222; margin-top: 40px; }
 
-        /* Dashboard Elements */
         .dashboard {
             background-color: var(--panel-bg); border: 2px solid #333; border-radius: 12px;
             padding: 20px; width: 100%; max-width: 600px; box-shadow: 0 0 20px rgba(0, 255, 204, 0.05); margin-bottom: 20px;
@@ -65,14 +63,14 @@
         
         .calendar-section { margin-top: 15px; margin-bottom: 15px; text-align: center; }
         .calendar-grid { display: grid; grid-template-columns: repeat(15, 1fr); gap: 4px; margin-top: 10px; }
-        .day-box { aspect-ratio: 1; background-color: var(--day-bg); border-radius: 3px; display: flex; align-items: center; justify-content: center; font-size: 10px; }
+        .day-box { aspect-ratio: 1; background-color: var(--day-bg); border-radius: 3px; }
         .day-box.completed { background-color: var(--day-completed); box-shadow: 0 0 5px var(--day-completed); }
         .day-box.current { border: 2px solid var(--day-current); }
 
         .progress-bar-container { width: 100%; background-color: #333; border-radius: 10px; height: 15px; overflow: hidden; margin-bottom: 10px; }
         .progress-fill { height: 100%; background-color: var(--accent); width: 0%; transition: width 0.4s ease; }
 
-        .task-section h2 { border-bottom: 1px solid #444; padding-bottom: 5px; font-size: 18px; color: var(--text-muted); text-transform: uppercase; display: flex; justify-content: space-between; }
+        .task-section h2 { border-bottom: 1px solid #444; padding-bottom: 5px; font-size: 18px; color: var(--text-muted); text-transform: uppercase; }
         .task-item { display: flex; align-items: center; background-color: #2a2a2a; padding: 12px; border-radius: 8px; margin-bottom: 10px; }
         .task-item input[type="checkbox"] { margin-right: 15px; width: 20px; height: 20px; accent-color: var(--accent); cursor: pointer; }
         .task-title { font-weight: bold; font-size: 16px; }
@@ -96,7 +94,6 @@
     <div class="side-menu" id="sideMenu">
         <div class="menu-header">LEVEL UP Account</div>
         <div class="menu-user-email" id="menuEmailDisplay">---</div>
-        
         <button class="menu-item" onclick="toggleHistory(true); toggleMenu();">📜 LEVEL UP Journal</button>
         <button class="menu-item" onclick="hardReset(); toggleMenu();" style="font-size: 12px; color: #888;">⚠️ Hard Reset </button>
         <button class="menu-item menu-logout" onclick="logout()">Log Out</button>
@@ -114,7 +111,7 @@
         <p id="authError" style="color: #ff4444; font-size: 12px;"></p>
     </div>
 
-    <div id="appInterface" style="display: none; width: 100%; display: flex; flex-direction: column; align-items: center;">
+    <div id="appInterface" style="display: none; width: 100%; flex-direction: column; align-items: center;">
         <div class="dashboard">
             <div class="stats-container">
                 <div>
@@ -126,11 +123,7 @@
                     <div class="day-tracker" id="dayTracker">Day 1 / 90</div>
                 </div>
             </div>
-            
-            <div class="progress-bar-container">
-                <div class="progress-fill" id="progressBar"></div>
-            </div>
-            
+            <div class="progress-bar-container"><div class="progress-fill" id="progressBar"></div></div>
             <div class="calendar-section">
                 <div style="font-size: 12px; color: var(--text-muted); text-align: left;">3-Month Consistency Grid</div>
                 <div class="calendar-grid" id="calendarGrid"></div>
@@ -145,7 +138,6 @@
                 <label class="task-item"><input type="checkbox" id="cb_calories" class="task-checkbox" value="5" onchange="updatePoints(this)">
                     <div><span class="task-title">Caloric Surplus Maintained</span><span class="task-points">+5 EXP</span></div></label>
             </div>
-
             <div class="task-section">
                 <h2>Discipline & Sleep</h2>
                 <label class="task-item"><input type="checkbox" id="cb_sleep" class="task-checkbox" value="5" onchange="updatePoints(this)">
@@ -153,7 +145,6 @@
                 <label class="task-item"><input type="checkbox" id="cb_wake" class="task-checkbox" value="5" onchange="updatePoints(this)">
                     <div><span class="task-title">Wake up before 7 AM</span><span class="task-points">+5 EXP</span></div></label>
             </div>
-
             <div class="task-section">
                 <h2>Calisthenics <span id="weekIndicator" style="color: var(--accent); font-size: 14px;">Week 1</span></h2>
                 <label class="task-item"><input type="checkbox" id="cb_workout_upper" class="task-checkbox" value="5" onchange="updatePoints(this)">
@@ -165,7 +156,6 @@
                 <label class="task-item"><input type="checkbox" id="cb_workout_core" class="task-checkbox" value="5" onchange="updatePoints(this)">
                     <div><span class="task-title" id="text_core">Core Strength</span><span class="task-points" id="desc_core">+5 EXP</span></div></label>
             </div>
-            
             <div class="task-section" style="margin-bottom: 0;">
                 <h2>Hygiene</h2>
                 <label class="task-item" style="margin-bottom: 0;"><input type="checkbox" id="cb_hygiene" class="task-checkbox" value="10" onchange="updatePoints(this)">
@@ -176,9 +166,7 @@
 
     <div id="historyOverlay">
         <h2 style="text-align: center; color: var(--accent);">LEVEL UP Journal</h2>
-        <div style="text-align: center; margin-bottom: 20px;">
-            <button class="btn btn-secondary" onclick="toggleHistory(false)">Close Journal</button>
-        </div>
+        <div style="text-align: center; margin-bottom: 20px;"><button class="btn btn-secondary" onclick="toggleHistory(false)">Close Journal</button></div>
         <div id="historyContainer"></div>
     </div>
 
@@ -200,17 +188,13 @@
         const MAX_POINTS_PER_LEVEL = 500;
         const TOTAL_DAYS = 90;
         let currentUser = null;
-
         let totalCumulativePoints = 0;
         let startDate = null;
         let completedWorkoutsArray = Array(TOTAL_DAYS).fill(false);
         let historyObj = {}; 
         let currentDayNum = 1;
 
-        // UI Helpers
-        function toggleMenu() {
-            document.getElementById('sideMenu').classList.toggle('active');
-        }
+        function toggleMenu() { document.getElementById('sideMenu').classList.toggle('active'); }
 
         auth.onAuthStateChanged(user => {
             if (user) {
@@ -226,8 +210,6 @@
                 document.getElementById('appInterface').style.display = 'none';
                 document.getElementById('menuBtn').style.display = 'none';
                 document.getElementById('sideMenu').classList.remove('active');
-                calculateDates();
-                refreshUI();
             }
         });
 
@@ -255,24 +237,21 @@
                 completedWorkoutsArray = data.calendar || Array(TOTAL_DAYS).fill(false);
                 historyObj = data.history || {};
 
-                // Fix StartDate if needed
-                if (startDate && startDate % (1000 * 60 * 60 * 24) !== 0) {
-                    const oldDate = new Date(startDate);
-                    const istDateStr = oldDate.toLocaleString("en-US", {timeZone: "Asia/Kolkata"});
-                    const normalizedDate = new Date(istDateStr);
-                    normalizedDate.setHours(0, 0, 0, 0);
-                    startDate = normalizedDate.getTime();
-                    db.collection('users').doc(currentUser.uid).update({ startDate: startDate });
-                } else if (!startDate) {
+                // Critical: Set start date if it's missing
+                if (!startDate) {
                     startDate = getStartOfToday();
-                    db.collection('users').doc(currentUser.uid).update({ startDate: startDate });
+                    await docRef.update({ startDate: startDate });
                 }
-                
+
+                // Step 1: Calculate Day Number FIRST
+                calculateDates();
+
                 const currentISTString = getISTDateString();
                 
+                // Step 2: Handle Midnight Reset
                 if (data.lastActiveDate !== currentISTString) {
                     document.querySelectorAll('.task-checkbox').forEach(cb => cb.checked = false);
-                    saveDataToCloud();
+                    saveDataToCloud(); // Saves the new Day with empty boxes, but calculateDates has already moved currentDayNum forward
                 } else {
                     const boxes = data.todaysCheckboxes || {};
                     document.querySelectorAll('.task-checkbox').forEach(cb => {
@@ -284,7 +263,6 @@
                 saveDataToCloud();
             }
             
-            calculateDates();
             calculateDynamicWorkout();
             refreshUI();
             renderCalendar();
@@ -297,6 +275,7 @@
                 checkboxStates[cb.id] = cb.checked;
             });
 
+            // Update the Journal entry for the current day
             const historyKey = `day_${currentDayNum}`;
             historyObj[historyKey] = checkboxStates;
 
@@ -328,19 +307,19 @@
             return istDate.getTime();
         }
 
-        function getISTDateString() {
-            return new Date().toLocaleDateString("en-IN", {timeZone: "Asia/Kolkata"});
-        }
+        function getISTDateString() { return new Date().toLocaleDateString("en-IN", {timeZone: "Asia/Kolkata"}); }
 
         function updatePoints(checkbox) {
             const val = parseInt(checkbox.value);
             totalCumulativePoints += checkbox.checked ? val : -val;
             
-            const w1 = document.getElementById('cb_workout_upper').checked;
-            const w2 = document.getElementById('cb_workout_lower').checked;
-            const w3 = document.getElementById('cb_workout_back').checked;
-            const w4 = document.getElementById('cb_workout_core').checked;
-            completedWorkoutsArray[currentDayNum - 1] = (w1 && w2 && w3 && w4);
+            const w1 = document.getElementById('cb_protein').checked && document.getElementById('cb_calories').checked;
+            const w2 = document.getElementById('cb_workout_upper').checked && document.getElementById('cb_workout_lower').checked && 
+                       document.getElementById('cb_workout_back').checked && document.getElementById('cb_workout_core').checked;
+            const w3 = document.getElementById('cb_hygiene').checked && document.getElementById('cb_sleep').checked && document.getElementById('cb_wake').checked;
+            
+            // Mark calendar box as completed only if EVERYTHING today is checked
+            completedWorkoutsArray[currentDayNum - 1] = (w1 && w2 && w3);
             
             refreshUI();
             renderCalendar();
@@ -352,9 +331,7 @@
             const container = document.getElementById('historyContainer');
             if (show) {
                 container.innerHTML = "";
-                const keys = Object.keys(historyObj).sort((a, b) => {
-                    return parseInt(b.split('_')[1]) - parseInt(a.split('_')[1]);
-                });
+                const keys = Object.keys(historyObj).sort((a, b) => parseInt(b.split('_')[1]) - parseInt(a.split('_')[1]));
 
                 if (keys.length === 0) {
                     container.innerHTML = "<p style='text-align:center;'>No history recorded yet.</p>";
@@ -369,16 +346,14 @@
                     
                     Object.keys(data).forEach(taskID => {
                         const status = data[taskID] ? '<span class="history-check">✔</span>' : '<span class="history-cross">✖</span>';
-                        let taskName = taskID.replace('cb_', '').replace('_', ' ');
+                        let taskName = taskID.replace('cb_', '').replace(/_/g, ' ');
                         taskName = taskName.charAt(0).toUpperCase() + taskName.slice(1);
                         card.innerHTML += `<div style="font-size:14px; margin-bottom:4px;">${status} ${taskName}</div>`;
                     });
                     container.appendChild(card);
                 });
                 overlay.style.display = 'block';
-            } else {
-                overlay.style.display = 'none';
-            }
+            } else { overlay.style.display = 'none'; }
         }
 
         function calculateDynamicWorkout() {
